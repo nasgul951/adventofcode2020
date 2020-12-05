@@ -4,11 +4,23 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"sort"
 )
 
 func main() {
-	seats := loadData()
-	fmt.Printf("Max Seat ID: %d", seats.MaxID())
+	boardingPasses := loadData()
+	allSeatIds := getAllSeatIds()
+	sort.Ints(allSeatIds)
+
+	for _, s := range allSeatIds {
+		_, found := boardingPasses.GetByID(s)
+		if found {
+			fmt.Printf("%d ***\n", s)
+		} else {
+			fmt.Printf("%d\n", s)
+		}
+	}
+	fmt.Printf("Max Seat ID: %d", boardingPasses.MaxID())
 }
 
 type seat struct {
@@ -26,6 +38,15 @@ func (l seatList) MaxID() int {
 		}
 	}
 	return max
+}
+func (l seatList) GetByID(id int) (seat, bool) {
+	for _, s := range l {
+		if s.ID == id {
+			return s, true
+		}
+	}
+	var e seat
+	return e, false
 }
 
 func getSeat(location string) seat {
@@ -55,6 +76,17 @@ func partition(s string, min, max int) int {
 	}
 	exit(fmt.Sprintf("ERROR: failed to partition '%s' final result: min(%d) - max(%d)\n", s, min, max))
 	return -1
+}
+
+func getAllSeatIds() []int {
+	var seatIds []int
+	for r := 0; r < 128; r++ {
+		for c := 0; c < 8; c++ {
+			seatIds = append(seatIds, (r*8 + c))
+		}
+	}
+
+	return seatIds
 }
 
 func loadData() seatList {
