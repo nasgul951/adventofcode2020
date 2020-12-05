@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"sort"
 	"strings"
 )
 
@@ -32,12 +33,29 @@ func main() {
 	values = append(values, toMap(data))
 
 	valid2Count := 0
+	var test []string
 	for _, p := range values {
 		if isValidv2(p) {
 			valid2Count++
+
+			t := p["pid"]
+			if strings.HasSuffix(t, "") {
+				test = append(test, t)
+			}
 		}
 	}
+	fmt.Printf("test len:%d\n", len(test))
+	sort.Strings(test)
 
+	lastv := ""
+	for _, v := range test {
+		fmt.Printf("pid:'%s'\n", v)
+		if lastv == v {
+			fmt.Printf("*** DUPLICATE PID ***\n")
+		}
+		lastv = v
+	}
+	//224
 	fmt.Printf("Found %d valid records.\n", valid2Count)
 }
 
@@ -54,7 +72,7 @@ func toMap(data string) map[string]string {
 	return newMap
 }
 
-func isValid(p map[string]string) bool {
+func isValidv1(p map[string]string) bool {
 	required := [][]string{
 		{"byr", "^19[2-9][0-9]|200[0-2]$"},
 		{"iyr", "^201[0-9]|2020$"},
@@ -97,11 +115,8 @@ func isValidv2(p map[string]string) bool {
 			return false
 		}
 
-		if k[0] == "ecl" {
-			fmt.Printf("%s is valid for %s\n", v, k[0])
-		}
 	}
-	//225
+
 	return true
 }
 
