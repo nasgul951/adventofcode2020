@@ -20,7 +20,10 @@ func main() {
 			fmt.Printf("%d\n", s)
 		}
 	}
-	fmt.Printf("Max Seat ID: %d", boardingPasses.MaxID())
+	biggerID := func(s1, s2 *seat) bool {
+		return s1.ID > s2.ID
+	}
+	fmt.Printf("Max Seat ID: %d\n", boardingPasses.Max(biggerID).ID)
 }
 
 type seat struct {
@@ -28,38 +31,37 @@ type seat struct {
 	Column int
 	ID     int
 }
-type seatList []seat
+type seatList []*seat
 
-func (l seatList) MaxID() int {
-	max := 0
+func (l seatList) Max(isBigger func(s1, s2 *seat) bool) *seat {
+	maxSeat := new(seat)
 	for _, v := range l {
-		if v.ID > max {
-			max = v.ID
+		if isBigger(v, maxSeat) {
+			maxSeat = v
 		}
 	}
-	return max
+	return maxSeat
 }
-func (l seatList) GetByID(id int) (seat, bool) {
+func (l seatList) GetByID(id int) (*seat, bool) {
 	for _, s := range l {
 		if s.ID == id {
 			return s, true
 		}
 	}
-	var e seat
-	return e, false
+	return nil, false
 }
 
-func getSeat(location string) seat {
+func newSeat(location string) *seat {
 	var s seat
 	s.Row = partition(location[0:7], 0, 127)
 	s.Column = partition(location[7:10], 0, 7)
 	s.ID = s.Row*8 + s.Column
 
-	return s
+	return &s
 }
 
 func partition(s string, min, max int) int {
-	fmt.Printf("DEBUG: partitioning '%s'\n", s)
+	//fmt.Printf("DEBUG: partitioning '%s'\n", s)
 	for _, c := range s {
 		mid := (max - min) / 2
 		if string(c) == "F" || string(c) == "L" {
@@ -69,7 +71,7 @@ func partition(s string, min, max int) int {
 		} else {
 			exit(fmt.Sprintf("Unexpected char %c", c))
 		}
-		fmt.Printf("DEBUG: %q: %d - %d\n", c, min, max)
+		//fmt.Printf("DEBUG: %q: %d - %d\n", c, min, max)
 		if min == max {
 			return min
 		}
@@ -100,7 +102,7 @@ func loadData() seatList {
 
 	for s.Scan() {
 		line := s.Text()
-		values = append(values, getSeat(line))
+		values = append(values, newSeat(line))
 	}
 
 	return values
