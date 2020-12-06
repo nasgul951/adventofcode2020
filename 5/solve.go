@@ -20,10 +20,7 @@ func main() {
 			fmt.Printf("%d\n", s)
 		}
 	}
-	biggerID := func(s1, s2 *seat) bool {
-		return s1.ID > s2.ID
-	}
-	fmt.Printf("Max Seat ID: %d\n", boardingPasses.Max(biggerID).ID)
+	fmt.Printf("Max Seat ID: %d\n", boardingPasses.Last().ID)
 }
 
 type seat struct {
@@ -33,20 +30,20 @@ type seat struct {
 }
 type seatList []*seat
 
-func (l seatList) Max(isBigger func(s1, s2 *seat) bool) *seat {
-	maxSeat := new(seat)
-	for _, v := range l {
-		if isBigger(v, maxSeat) {
-			maxSeat = v
-		}
-	}
-	return maxSeat
+func (l seatList) Len() int           { return len(l) }
+func (l seatList) Swap(i, j int)      { l[i], l[j] = l[j], l[i] }
+func (l seatList) Less(i, j int) bool { return l[i].ID < l[j].ID }
+
+func (l seatList) Last() *seat {
+	return l[len(l)-1]
 }
+
 func (l seatList) GetByID(id int) (*seat, bool) {
-	for _, s := range l {
-		if s.ID == id {
-			return s, true
-		}
+	ix := sort.Search(len(l), func(i int) bool {
+		return id <= l[i].ID
+	})
+	if ix < len(l) && l[ix].ID == id {
+		return l[ix], true
 	}
 	return nil, false
 }
@@ -105,6 +102,7 @@ func loadData() seatList {
 		values = append(values, newSeat(line))
 	}
 
+	sort.Sort(values)
 	return values
 }
 
